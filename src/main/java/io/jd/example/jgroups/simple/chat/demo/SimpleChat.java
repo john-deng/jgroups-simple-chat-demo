@@ -6,7 +6,10 @@ import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
 import org.jgroups.util.Util;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,23 +17,43 @@ import java.util.List;
 import static java.lang.System.*;
 
 @Slf4j
+@Component
 public class SimpleChat extends ReceiverAdapter {
 
-    private JChannel channel;
+    @Value("${app.jgroups.config:jgroups-config.xml}")
+    private String jGroupsConfig;
+    @Value("${app.jgroups.cluster:chat-cluster}")
+    private String clusterName;
 
+    private final List<String> state = new LinkedList<>();
+    private JChannel channel;
     private String username = getProperty("user.name", "n/a");
 
-    private final List<String> state = new LinkedList<String>();
-
-
+    @PostConstruct
     public void start() throws Exception {
-
-        channel=new JChannel();
+        log.info("Start SimpleChat ...");
+        channel = new JChannel(jGroupsConfig);
         channel.setReceiver(this);
-        channel.connect("ChatCluster");
+        channel.connect(clusterName);
         channel.getState(null, 10000);
-        eventLoop();
+
+    }
+
+    public void close() {
         channel.close();
+    }
+
+    public int send(String message) {
+
+        Message msg = new Message(null, message);
+        try {
+            log.info("send message: {}", message);
+            channel.send(msg);
+        } catch (Exception e) {
+            log.error("Failed: {}", e);
+            return -1;
+        }
+        return 0;
     }
 
     private void eventLoop() {
@@ -65,18 +88,18 @@ public class SimpleChat extends ReceiverAdapter {
 
     public void viewAccepted(View newView) {
 
-        out.println("** view: " + newView);
+        log.info("** view: " + newView);
 
     }
 
 
     public void receive(Message msg) {
 
-        String line=msg.getSrc() + ": " + msg.getObject();
+        String line = msg.getSrc() + ": " + msg.getObject();
 
-        out.println(line);
+        log.info("Received: " + line);
 
-        synchronized(state) {
+        synchronized (state) {
 
             state.add(line);
 
@@ -86,7 +109,7 @@ public class SimpleChat extends ReceiverAdapter {
 
     public void getState(OutputStream output) throws Exception {
 
-        synchronized(state) {
+        synchronized (state) {
 
             Util.objectToStream(state, new DataOutputStream(output));
 
@@ -98,9 +121,9 @@ public class SimpleChat extends ReceiverAdapter {
 
         List<String> list;
 
-        list= Util.objectFromStream(new DataInputStream(input));
+        list = Util.objectFromStream(new DataInputStream(input));
 
-        synchronized(state) {
+        synchronized (state) {
 
             state.clear();
 
@@ -108,11 +131,11 @@ public class SimpleChat extends ReceiverAdapter {
 
         }
 
-        out.println(list.size() + " messages in chat history):");
+        log.info(list.size() + " messages in chat history):");
 
-        for(String str: list) {
+        for (String str : list) {
 
-            out.println(str);
+            log.info(str);
 
         }
 

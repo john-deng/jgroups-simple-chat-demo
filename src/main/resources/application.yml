@@ -1,0 +1,3 @@
+app:
+  jgroups:
+    cluster: "ChatCluster"

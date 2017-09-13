@@ -1,0 +1,3 @@
+app:
+  jgroups:
+    config: jgroups-config-local.xml
