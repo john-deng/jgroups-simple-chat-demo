@@ -24,3 +24,5 @@ dist/
 nbdist/
 .nb-gradle/
 oc-build/
+
+.DS_Store
