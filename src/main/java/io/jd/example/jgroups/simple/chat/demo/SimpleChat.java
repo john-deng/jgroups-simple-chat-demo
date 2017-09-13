@@ -14,29 +14,35 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.lang.System.*;
+import static java.lang.System.getProperty;
+import static java.lang.System.out;
 
 @Slf4j
 @Component
 public class SimpleChat extends ReceiverAdapter {
 
+    private final List<String> state = new LinkedList<>();
     @Value("${app.jgroups.config:jgroups-config.xml}")
     private String jGroupsConfig;
     @Value("${app.jgroups.cluster:chat-cluster}")
     private String clusterName;
-
-    private final List<String> state = new LinkedList<>();
     private JChannel channel;
     private String username = getProperty("user.name", "n/a");
 
     @PostConstruct
-    public void start() throws Exception {
+    public void init()  {
         log.info("Start SimpleChat ...");
-        channel = new JChannel(jGroupsConfig);
-        channel.setReceiver(this);
-        channel.connect(clusterName);
-        channel.getState(null, 10000);
 
+        try {
+            channel = new JChannel(jGroupsConfig);
+            channel.setReceiver(this);
+            channel.connect(clusterName);
+            channel.getState(null, 10000);
+//            MBeanServer server = Util.getMBeanServer();
+//            JmxConfigurator.registerChannel(channel, server, "control-channel", channel.getClusterName(), true);
+        } catch (Exception ex) {
+            log.error("registering the channel in JMX failed: {}", ex);
+        }
     }
 
     public void close() {
