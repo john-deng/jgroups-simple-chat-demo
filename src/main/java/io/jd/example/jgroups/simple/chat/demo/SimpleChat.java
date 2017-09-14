@@ -38,8 +38,6 @@ public class SimpleChat extends ReceiverAdapter {
             channel.setReceiver(this);
             channel.connect(clusterName);
             channel.getState(null, 10000);
-//            MBeanServer server = Util.getMBeanServer();
-//            JmxConfigurator.registerChannel(channel, server, "control-channel", channel.getClusterName(), true);
         } catch (Exception ex) {
             log.error("registering the channel in JMX failed: {}", ex);
         }
@@ -53,7 +51,7 @@ public class SimpleChat extends ReceiverAdapter {
 
         Message msg = new Message(null, message);
         try {
-            log.info("[v2] send message: {}", message);
+            log.info("[v1] send message: {}", message);
             channel.send(msg);
         } catch (Exception e) {
             log.error("Failed: {}", e);
@@ -74,26 +72,20 @@ public class SimpleChat extends ReceiverAdapter {
                 out.flush();
 
                 String line = in.readLine().toLowerCase();
-
                 if (line.startsWith("quit") || line.startsWith("exit"))
                     break;
 
                 line = "[" + username + "] " + line;
-
                 Message msg = new Message(null, line);
-
                 channel.send(msg);
 
             } catch (Exception e) {
                 log.error("Error: {}", e);
             }
-
         }
-
     }
 
     public void viewAccepted(View newView) {
-
         log.info("** view: " + newView);
 
     }
@@ -102,13 +94,9 @@ public class SimpleChat extends ReceiverAdapter {
     public void receive(Message msg) {
 
         String line = msg.getSrc() + ": " + msg.getObject();
-
         log.info("Received: " + line);
-
         synchronized (state) {
-
             state.add(line);
-
         }
 
     }
@@ -116,9 +104,7 @@ public class SimpleChat extends ReceiverAdapter {
     public void getState(OutputStream output) throws Exception {
 
         synchronized (state) {
-
             Util.objectToStream(state, new DataOutputStream(output));
-
         }
 
     }
@@ -126,24 +112,16 @@ public class SimpleChat extends ReceiverAdapter {
     public void setState(InputStream input) throws Exception {
 
         List<String> list;
-
         list = Util.objectFromStream(new DataInputStream(input));
 
         synchronized (state) {
-
             state.clear();
-
             state.addAll(list);
-
         }
 
         log.info(list.size() + " messages in chat history):");
-
         for (String str : list) {
-
             log.info(str);
-
         }
-
     }
 }
