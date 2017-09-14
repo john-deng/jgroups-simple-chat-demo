@@ -1,5 +1,5 @@
 app:
   jgroups:
     config: jgroups-config.xml
-    cluster: simple-chat-cluster
+    cluster: simple-chat
 

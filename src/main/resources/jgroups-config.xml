@@ -25,10 +25,11 @@
 
    <!--TCPPING
        initial_hosts="172.31.47.164[7800],172.31.43.171[7800]"/-->
-
-   <org.jgroups.protocols.kubernetes.KUBE_PING masterHost="${KUBERNETES_MASTER_HOST:devops}"
-                                               namespace="${KUBERNETES_NAMESPACE:default}"
-                                               labels="${KUBERNETES_LABELS}" />
+   <!-- KUBE_MASTER, KUBE_NS, and KUBE_LABELS are the JVM properties, can be passed from JVM arguments -->
+   <kubernetes.KUBE_PING masterHost="${MASTER_HOST}"
+                         masterUrl="${MASTER_URL}"
+                         namespace="${NAMESPACE}"
+                         labels="${LABELS}" />
 
    <MERGE3 max_interval="30000"
            min_interval="10000"/>

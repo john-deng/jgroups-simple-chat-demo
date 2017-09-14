@@ -53,7 +53,7 @@ public class SimpleChat extends ReceiverAdapter {
 
         Message msg = new Message(null, message);
         try {
-            log.info("send message: {}", message);
+            log.info("[v2] send message: {}", message);
             channel.send(msg);
         } catch (Exception e) {
             log.error("Failed: {}", e);
